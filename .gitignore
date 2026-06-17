@@ -1,0 +1,47 @@
+# Build output
+**/bin/
+**/obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# JetBrains Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# NuGet
+*.nupkg
+packages/
+
+# EF Core local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# Local settings
+**/appsettings.Development.json
+**/appsettings.*.local.json
+
+# Environment files
+.env
+
+# Test results
+TestResults/
+*.trx
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Publish
+**/publish/
+
+# User uploaded files
+**/uploads/
