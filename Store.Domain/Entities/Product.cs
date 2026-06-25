@@ -1,5 +1,4 @@
 ﻿namespace Store.Domain.Entities;
-
 public sealed class Product
 {
     public int Id { get; set; }

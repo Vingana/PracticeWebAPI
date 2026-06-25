@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Store.Domain.Entities;
-
 namespace Store.Infrastructure.Seed;
-
 public static class ProductSeed
 {
     public static void Seed(ModelBuilder modelBuilder)
@@ -38,7 +36,6 @@ public static class ProductSeed
                 ImageURL = null,
                 CategoryId = 1
             },
-
             new Product
             {
                 Id = 4,
@@ -69,7 +66,6 @@ public static class ProductSeed
                 ImageURL = null,
                 CategoryId = 2
             },
-
             new Product
             {
                 Id = 7,

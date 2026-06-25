@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.VisualStudio.JavaScript.Sdk/1.0.5171056">
+  <PropertyGroup>
+    <StartupCommand>npm run dev</StartupCommand>
+    <JavaScriptTestRoot>src\</JavaScriptTestRoot>
+    <JavaScriptTestFramework>Vitest</JavaScriptTestFramework>
+    <!-- Allows the build (or compile) script located on package.json to run on Build -->
+    <ShouldRunBuildScript>false</ShouldRunBuildScript>
+    <!-- Folder where production build objects will be placed -->
+    <BuildOutputFolder>$(MSBuildProjectDirectory)\dist</BuildOutputFolder>
+  </PropertyGroup>
+  <ItemGroup>
+    <Folder Include="src\components\" />
+    <Folder Include="src\features\" />
+    <Folder Include="src\pages\CartPage\" />
+    <Folder Include="src\pages\CheckoutPage\" />
+    <Folder Include="src\pages\AdminPage\" />
+    <Folder Include="src\pages\OrderPage\" />
+    <Folder Include="src\pages\ProductPage\" />
+    <Folder Include="src\styles\" />
+    <Folder Include="src\services\" />
+    <Folder Include="src\router\" />
+  </ItemGroup>
+</Project>

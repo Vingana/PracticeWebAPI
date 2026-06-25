@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Store.Domain.Entities;
-
 namespace Store.Infrastructure.Seed;
-
 public static class CategorySeed
 {
     public static void Seed(ModelBuilder modelBuilder)
