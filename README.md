@@ -1,19 +1,19 @@
-Store Web Application
+# Store Web Application
 
 
 
 Online store.
 
-# Prerequisites
+## Prerequisites
 
 Before you begin, ensure you have the following installed:
 * .NET SDK 8.0+
 * Node.js (latest LTS version)
 
-# Project Setup
+## Project Setup
 
 
-# 1. Clone the repository
+### 1. Clone the repository
 
 
 
@@ -27,7 +27,7 @@ cd PracticeWebAPI
 
 
 
-2. Backend Setup
+### 2. Backend Setup
 
 
 
@@ -82,7 +82,7 @@ Backend will be available at:
 
 https://localhost:7226
 
-3. Frontend Setup
+### 3. Frontend Setup
 
 
 
