@@ -1,10 +1,10 @@
 import axios from 'axios';
 export const api = axios.create({
-  baseURL: 'http://localhost:5032/api', 
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  withCredentials: true, 
+    baseURL: 'https://localhost:7226/api',
+    headers: {
+        'Content-Type': 'application/json',
+    },
+    withCredentials: true,
 });
 api.interceptors.response.use(
   (response) => response,

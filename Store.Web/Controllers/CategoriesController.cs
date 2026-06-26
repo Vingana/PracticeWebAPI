@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Store.Services.CategoryService;
 using Store.Services.Models.Category;
 namespace Store.Web.Controllers;

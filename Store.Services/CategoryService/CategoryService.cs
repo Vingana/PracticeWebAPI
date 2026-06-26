@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Store.Domain.Entities;
 using Store.Infrastructure;
+using Store.Services.Exceptions;
 using Store.Services.Models.Category;
 namespace Store.Services.CategoryService;
 public sealed class CategoryService : ICategoryService
@@ -66,10 +67,17 @@ public sealed class CategoryService : ICategoryService
     public async Task<bool> DeleteAsync(int id)
     {
         Category? category =
-            await _context.Categories.FindAsync(id);
+            await _context.Categories
+                .Include(c => c.Products)
+                .FirstOrDefaultAsync(c => c.Id == id);
         if (category is null)
         {
             return false;
+        }
+        if (category.Products.Count > 0)
+        {
+            throw new BusinessValidationException(
+                $"Cannot delete category \"{category.Name}\" because it contains {category.Products.Count} product(s). Remove or reassign them first.");
         }
         _context.Categories.Remove(category);
         await _context.SaveChangesAsync();

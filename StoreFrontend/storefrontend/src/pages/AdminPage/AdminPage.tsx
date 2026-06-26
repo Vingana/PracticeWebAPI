@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import Navbar from '../../components/Navbar/Navbar';
 import { useOrders, useUpdateOrderStatus } from '../../hooks/useOrders';
-import { useProducts, useCreateProduct, useDeleteProduct } from '../../hooks/useProducts';
-import { useCategories, useCreateCategory, useDeleteCategory } from '../../hooks/useCategories';
+import { useProducts, useCreateProduct, useDeleteProduct, useUpdateProduct } from '../../hooks/useProducts';
+import { useCategories, useCreateCategory, useDeleteCategory, useUpdateCategory } from '../../hooks/useCategories';
 import { OrderStatus } from '../../types';
 import { ValidationErrors } from '../../components/ValidationErrors/ValidationErrors';
 import { extractValidationErrors } from '../../utils/validationErrors';
@@ -23,8 +23,10 @@ function AdminDashboard() {
   const updateStatus = useUpdateOrderStatus();
   const createProduct = useCreateProduct();
   const deleteProduct = useDeleteProduct();
+  const updateProduct = useUpdateProduct();
   const createCategory = useCreateCategory();
   const deleteCategory = useDeleteCategory();
+  const updateCategory = useUpdateCategory();
   const [newProduct, setNewProduct] = useState({
     name: '', description: '', price: 0, quantity: 0, categoryId: 0, imageURL: '',
   });
@@ -32,6 +34,12 @@ function AdminDashboard() {
   const [orderErrors, setOrderErrors] = useState<string[]>([]);
   const [productErrors, setProductErrors] = useState<string[]>([]);
   const [categoryErrors, setCategoryErrors] = useState<string[]>([]);
+  const [editingProduct, setEditingProduct] = useState<null | {
+    id: number; name: string; description: string; price: number; quantity: number; categoryId: number; imageURL: string;
+  }>(null);
+  const [editErrors, setEditErrors] = useState<string[]>([]);
+  const [editingCategory, setEditingCategory] = useState<null | { id: number; name: string }>(null);
+  const [editCategoryErrors, setEditCategoryErrors] = useState<string[]>([]);
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const toggleOrder = (id: number) =>
     setExpandedOrderId((prev) => (prev === id ? null : id));
@@ -300,13 +308,27 @@ function AdminDashboard() {
                       <td style={{ padding: '8px' }}>{p.categoryName}</td>
                       <td style={{ padding: '8px' }}>${p.price.toFixed(2)}</td>
                       <td style={{ padding: '8px' }}>{p.quantity}</td>
-                      <td style={{ padding: '8px' }}>
+                      <td style={{ padding: '8px', display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <button
+                          onClick={() => setEditingProduct({
+                            id: p.id,
+                            name: p.name,
+                            description: p.description ?? '',
+                            price: p.price,
+                            quantity: p.quantity,
+                            categoryId: p.categoryId,
+                            imageURL: p.imageURL ?? '',
+                          })}
+                          style={{ color: '#6c63ff', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                        >
+                          ✏️ Edit
+                        </button>
                         <button
                           onClick={() => deleteProduct.mutate(p.id)}
                           disabled={deleteProduct.isPending}
                           style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer' }}
                         >
-                          Delete
+                          🗑 Delete
                         </button>
                       </td>
                     </tr>
@@ -315,7 +337,111 @@ function AdminDashboard() {
               </table>
             </div>
           )}
-          {}
+          {/* Edit Product Modal */}
+          {editingProduct && (
+            <div style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+            }}
+              onClick={() => { setEditingProduct(null); setEditErrors([]); }}
+            >
+              <div
+                style={{
+                  background: '#fff', borderRadius: '14px', padding: '32px 28px',
+                  width: '100%', maxWidth: '500px', boxShadow: '0 8px 32px rgba(108,99,255,0.18)',
+                  position: 'relative',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => { setEditingProduct(null); setEditErrors([]); }}
+                  style={{ position: 'absolute', top: '14px', right: '18px', background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#aaa' }}
+                >✕</button>
+                <h2 style={{ marginBottom: '20px', color: '#2b3674', fontSize: '1.2rem' }}>Edit Product #{editingProduct.id}</h2>
+                {editErrors.length > 0 && (
+                  <ul style={{ color: 'red', marginBottom: '12px', paddingLeft: '18px', fontSize: '0.875rem' }}>
+                    {editErrors.map((e, i) => <li key={i}>{e}</li>)}
+                  </ul>
+                )}
+                <form
+                  style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}
+                  onSubmit={(ev) => {
+                    ev.preventDefault();
+                    setEditErrors([]);
+                    updateProduct.mutate(
+                      {
+                        id: editingProduct.id,
+                        dto: {
+                          name: editingProduct.name,
+                          description: editingProduct.description || undefined,
+                          price: editingProduct.price,
+                          quantity: editingProduct.quantity,
+                          categoryId: editingProduct.categoryId,
+                          imageURL: editingProduct.imageURL || undefined,
+                        },
+                      },
+                      {
+                        onSuccess: () => { setEditingProduct(null); setEditErrors([]); },
+                        onError: (err) => setEditErrors(extractValidationErrors(err)),
+                      }
+                    );
+                  }}
+                >
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.875rem', color: '#555', fontWeight: 600 }}>
+                    Name
+                    <input required value={editingProduct.name}
+                      onChange={(e) => setEditingProduct((p) => p && ({ ...p, name: e.target.value }))}
+                      style={{ padding: '8px 10px', borderRadius: '7px', border: '1px solid #d0d5e8', fontSize: '0.95rem' }} />
+                  </label>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.875rem', color: '#555', fontWeight: 600 }}>
+                    Description
+                    <textarea value={editingProduct.description} rows={3}
+                      onChange={(e) => setEditingProduct((p) => p && ({ ...p, description: e.target.value }))}
+                      style={{ padding: '8px 10px', borderRadius: '7px', border: '1px solid #d0d5e8', fontSize: '0.95rem', resize: 'vertical' }} />
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.875rem', color: '#555', fontWeight: 600 }}>
+                      Price ($)
+                      <input required type="number" min={0} step="0.01" value={editingProduct.price}
+                        onChange={(e) => setEditingProduct((p) => p && ({ ...p, price: Number(e.target.value) }))}
+                        style={{ padding: '8px 10px', borderRadius: '7px', border: '1px solid #d0d5e8', fontSize: '0.95rem' }} />
+                    </label>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.875rem', color: '#555', fontWeight: 600 }}>
+                      Quantity
+                      <input required type="number" min={0} value={editingProduct.quantity}
+                        onChange={(e) => setEditingProduct((p) => p && ({ ...p, quantity: Number(e.target.value) }))}
+                        style={{ padding: '8px 10px', borderRadius: '7px', border: '1px solid #d0d5e8', fontSize: '0.95rem' }} />
+                    </label>
+                  </div>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.875rem', color: '#555', fontWeight: 600 }}>
+                    Category
+                    <select required value={editingProduct.categoryId}
+                      onChange={(e) => setEditingProduct((p) => p && ({ ...p, categoryId: Number(e.target.value) }))}
+                      style={{ padding: '8px 10px', borderRadius: '7px', border: '1px solid #d0d5e8', fontSize: '0.95rem' }}>
+                      <option value="">Select category</option>
+                      {categories?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </label>
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.875rem', color: '#555', fontWeight: 600 }}>
+                    Image URL (optional)
+                    <input value={editingProduct.imageURL}
+                      onChange={(e) => setEditingProduct((p) => p && ({ ...p, imageURL: e.target.value }))}
+                      style={{ padding: '8px 10px', borderRadius: '7px', border: '1px solid #d0d5e8', fontSize: '0.95rem' }} />
+                  </label>
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                    <button type="submit" disabled={updateProduct.isPending}
+                      style={{ flex: 1, padding: '10px', borderRadius: '8px', background: '#6c63ff', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.95rem' }}>
+                      {updateProduct.isPending ? 'Saving…' : 'Save Changes'}
+                    </button>
+                    <button type="button" onClick={() => { setEditingProduct(null); setEditErrors([]); }}
+                      style={{ flex: 1, padding: '10px', borderRadius: '8px', background: '#f0f0f5', color: '#555', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}>
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
           {tab === 'categories' && (
             <div>
               <h2>Categories</h2>
@@ -363,19 +489,90 @@ function AdminDashboard() {
                       <td style={{ padding: '8px' }}>{c.id}</td>
                       <td style={{ padding: '8px' }}>{c.name}</td>
                       <td style={{ padding: '8px' }}>{c.productsCount}</td>
-                      <td style={{ padding: '8px' }}>
+                      <td style={{ padding: '8px', display: 'flex', gap: '8px', alignItems: 'center' }}>
                         <button
-                          onClick={() => deleteCategory.mutate(c.id)}
+                          onClick={() => setEditingCategory({ id: c.id, name: c.name })}
+                          style={{ color: '#6c63ff', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            setCategoryErrors([]);
+                            deleteCategory.mutate(c.id, {
+                              onError: (err) => setCategoryErrors(extractValidationErrors(err)),
+                            });
+                          }}
                           disabled={deleteCategory.isPending}
                           style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer' }}
                         >
-                          Delete
+                          🗑 Delete
                         </button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+          {/* Edit Category Modal */}
+          {editingCategory && (
+            <div style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+            }}
+              onClick={() => { setEditingCategory(null); setEditCategoryErrors([]); }}
+            >
+              <div
+                style={{
+                  background: '#fff', borderRadius: '14px', padding: '32px 28px',
+                  width: '100%', maxWidth: '400px', boxShadow: '0 8px 32px rgba(108,99,255,0.18)',
+                  position: 'relative',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <button
+                  onClick={() => { setEditingCategory(null); setEditCategoryErrors([]); }}
+                  style={{ position: 'absolute', top: '14px', right: '18px', background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer', color: '#aaa' }}
+                >✕</button>
+                <h2 style={{ marginBottom: '20px', color: '#2b3674', fontSize: '1.2rem' }}>Edit Category #{editingCategory.id}</h2>
+                {editCategoryErrors.length > 0 && (
+                  <ul style={{ color: 'red', marginBottom: '12px', paddingLeft: '18px', fontSize: '0.875rem' }}>
+                    {editCategoryErrors.map((e, i) => <li key={i}>{e}</li>)}
+                  </ul>
+                )}
+                <form
+                  style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+                  onSubmit={(ev) => {
+                    ev.preventDefault();
+                    setEditCategoryErrors([]);
+                    updateCategory.mutate(
+                      { id: editingCategory.id, dto: { name: editingCategory.name } },
+                      {
+                        onSuccess: () => { setEditingCategory(null); setEditCategoryErrors([]); },
+                        onError: (err) => setEditCategoryErrors(extractValidationErrors(err)),
+                      }
+                    );
+                  }}
+                >
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.875rem', color: '#555', fontWeight: 600 }}>
+                    Category Name
+                    <input required value={editingCategory.name}
+                      onChange={(e) => setEditingCategory((c) => c && ({ ...c, name: e.target.value }))}
+                      style={{ padding: '8px 10px', borderRadius: '7px', border: '1px solid #d0d5e8', fontSize: '0.95rem' }} />
+                  </label>
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+                    <button type="submit" disabled={updateCategory.isPending}
+                      style={{ flex: 1, padding: '10px', borderRadius: '8px', background: '#6c63ff', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.95rem' }}>
+                      {updateCategory.isPending ? 'Saving…' : 'Save Changes'}
+                    </button>
+                    <button type="button" onClick={() => { setEditingCategory(null); setEditCategoryErrors([]); }}
+                      style={{ flex: 1, padding: '10px', borderRadius: '8px', background: '#f0f0f5', color: '#555', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.95rem' }}>
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           )}
         </div>

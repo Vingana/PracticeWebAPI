@@ -11,6 +11,10 @@ export function extractValidationErrors(error: unknown): string[] {
     if (data?.errors && typeof data.errors === 'object') {
       return Object.values(data.errors).flat();
     }
+    const anyData = data as Record<string, unknown>;
+    if (typeof anyData?.error === 'string' && anyData.error.length > 0) {
+      return [anyData.error];
+    }
     if (typeof (data as unknown) === 'string' && (data as unknown as string).length > 0) {
       return [data as unknown as string];
     }

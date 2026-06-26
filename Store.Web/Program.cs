@@ -13,7 +13,14 @@ using Store.Services.ProductService;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddSession();
+builder.Services.AddSession(options =>
+{
+    options.Cookie.Name = ".Store.Session";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
@@ -28,13 +35,14 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("FrontendPolicy",
+    options.AddPolicy("React",
         policy =>
         {
-            policy.SetIsOriginAllowed(origin => true)
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowCredentials();
+            policy
+                .WithOrigins("http://localhost:50129")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
         });
 });
 
@@ -56,7 +64,7 @@ app.MapScalarApiReference();
 
 app.UseExceptionHandler();
 app.UseHttpsRedirection();
-app.UseCors("FrontendPolicy");
+app.UseCors("React");
 app.UseSession();
 app.MapControllers();
 app.Run();
